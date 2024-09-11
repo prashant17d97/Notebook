@@ -1,0 +1,128 @@
+package app.debugdesk.notebook.utils
+
+import app.debugdesk.notebook.utils.CommonObjects.AUDIO
+import app.debugdesk.notebook.utils.CommonObjects.DOCUMENTS
+import app.debugdesk.notebook.utils.CommonObjects.NOTEBOOK
+import app.debugdesk.notebook.utils.CommonObjects.PICTURE
+import app.debugdesk.notebook.utils.CommonObjects.VIDEO
+import app.debugdesk.notebook.utils.log.Logcat
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCObjectVar
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.allocPointerTo
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
+import org.koin.core.component.KoinComponent
+import platform.Foundation.NSData
+import platform.Foundation.NSDocumentDirectory
+import platform.Foundation.NSError
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSSearchPathForDirectoriesInDomains
+import platform.Foundation.NSUserDomainMask
+import platform.Foundation.dataWithBytes
+import platform.Foundation.writeToFile
+
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+actual object SharedObjects : KoinComponent {
+
+    @OptIn(ExperimentalForeignApi::class)
+    actual fun createNotebookFolders() {
+
+        try {
+            val fileManager = NSFileManager.defaultManager
+            val baseDir = NSSearchPathForDirectoriesInDomains(
+                NSDocumentDirectory,
+                NSUserDomainMask,
+                true
+            ).first() as String
+            val notebookDir = "$baseDir/$NOTEBOOK"
+
+            val pictureDir = "$notebookDir/$PICTURE"
+            val videoDir = "$notebookDir/$VIDEO"
+            val audioDir = "$notebookDir/$AUDIO"
+            val documentDir = "$notebookDir/$DOCUMENTS"
+
+
+            // Prepare an error pointer
+            memScoped {
+                val error = allocPointerTo<ObjCObjectVar<NSError?>>()
+
+                // Create directories with error handling
+                fileManager.createDirectoryAtPath(
+                    path = pictureDir,
+                    withIntermediateDirectories = true,
+                    attributes = null,
+                    error = error.value
+                )
+                fileManager.createDirectoryAtPath(
+                    videoDir,
+                    withIntermediateDirectories = true,
+                    attributes = null,
+                    error = error.value
+                )
+                fileManager.createDirectoryAtPath(
+                    audioDir,
+                    withIntermediateDirectories = true,
+                    attributes = null,
+                    error = error.value
+                )
+                fileManager.createDirectoryAtPath(
+                    documentDir,
+                    withIntermediateDirectories = true,
+                    attributes = null,
+                    error = error.value
+                )
+
+                // Check if an error occurred
+                error.value?.let { err ->
+                    Logcat.e("SharedObjects", "Error creating directories: $err")
+                    println("Error creating directories: $err")
+                }
+            }
+        } catch (exception: Exception) {
+            Logcat.e("SharedObjects", "createNotebookFolders: ${exception.message.toString()}")
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    actual fun saveFileToFolder(folderName: String, fileName: String, data: ByteArray): Boolean {
+        val fileManager = NSFileManager.defaultManager
+        val baseDir = NSSearchPathForDirectoriesInDomains(
+            NSDocumentDirectory,
+            NSUserDomainMask,
+            true
+        ).first() as String
+        val folderPath = "$baseDir/$NOTEBOOK/$folderName"
+        val filePath = "$folderPath/$fileName"
+
+        // Ensure the folder exists
+        if (!fileManager.fileExistsAtPath(folderPath)) {
+            memScoped {
+                val errorPtr = allocPointerTo<ObjCObjectVar<NSError?>>()
+
+                val success = fileManager.createDirectoryAtPath(
+                    path = folderPath,
+                    withIntermediateDirectories = true,
+                    attributes = null,
+                    error = errorPtr.value
+                )
+
+                // Handle the case where directory creation fails
+                if (!success) {
+                    errorPtr.value?.let { error ->
+                        println("Error creating directory: ${error}")
+                        return false // Exit early if directory creation fails
+                    }
+                }
+            }
+        }
+
+        // Write the file
+        return data.usePinned { pinnedData ->
+            val dataNSData = NSData.dataWithBytes(pinnedData.addressOf(0), data.size.toULong())
+            dataNSData.writeToFile(filePath, true) // Returns true if file writing is successful
+        }
+    }
+
+}
