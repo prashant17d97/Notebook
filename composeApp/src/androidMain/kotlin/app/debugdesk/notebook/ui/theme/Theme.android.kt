@@ -1,29 +1,31 @@
 package app.debugdesk.notebook.ui.theme
 
 import android.os.Build
-import androidx.compose.runtime.Composable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import app.debugdesk.notebook.datamodel.AppAppearance
+import app.debugdesk.notebook.enummodel.ColorContrast
+import app.debugdesk.notebook.enummodel.isDakTheme
 
 
 @Composable
 actual fun AppTheme(
-    darkTheme: Boolean,
-    dynamicColor: Boolean,
-    contrast: Contrast,
+    appAppearance: AppAppearance,
     content: @Composable () -> Unit
 ) {
-    
-      val colorScheme = when {
-          dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+    val colorScheme = when {
+        appAppearance.useSystemPalette && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
               val context = LocalContext.current
-              if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (appAppearance.themeMode.isDakTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(
+                context
+            )
           }
-          
-          darkTheme -> contrast.colorSchemeDark
-          else -> contrast.colorSchemeLight
+
+        appAppearance.themeMode.isDakTheme -> appAppearance.colorContrast.colorSchemeDark
+        else -> appAppearance.colorContrast.colorSchemeLight
       }
     
       MaterialTheme(
@@ -32,6 +34,28 @@ actual fun AppTheme(
         content = content
       )
 }
-    
-    
- 
+
+
+@Composable
+actual fun AppThemePreview(
+    darkTheme: Boolean,
+    dynamicColor: Boolean,
+    colorContrast: ColorContrast,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+
+        darkTheme -> colorContrast.colorSchemeDark
+        else -> colorContrast.colorSchemeLight
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = RobotoCondensed(),
+        content = content
+    )
+}

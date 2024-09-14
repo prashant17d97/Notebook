@@ -1,10 +1,15 @@
 package app.debugdesk.notebook.presentations.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,42 +59,57 @@ fun Home(
     LaunchedEffect(notes) {
         selectAll = notes.none { !it.isSelected }
     }
-    Column(modifier = modifier.fillMaxSize()) {
-        AnimatedVisibility(visible = showAllCheckedBox) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
-                selectAll = !selectAll
-                homeViewModel.markSelectAllNote(selectAll)
-            }) {
-                Checkbox(
-                    checked = selectAll,
-                    onCheckedChange = {
-                        selectAll = !selectAll
-                        homeViewModel.markSelectAllNote(selectAll)
-                    }
-                )
-                Text(text = "Select All", style = MaterialTheme.typography.titleLarge)
+    AnimatedVisibility(notes.isNotEmpty()) {
+        Column(modifier = modifier.fillMaxSize()) {
+            AnimatedVisibility(visible = showAllCheckedBox) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                    selectAll = !selectAll
+                    homeViewModel.markSelectAllNote(selectAll)
+                }) {
+                    Checkbox(
+                        checked = selectAll,
+                        onCheckedChange = {
+                            selectAll = !selectAll
+                            homeViewModel.markSelectAllNote(selectAll)
+                        }
+                    )
+                    Text(text = "Select All", style = MaterialTheme.typography.titleLarge)
+                }
             }
+
+            CardList(
+                lazyState = lazyState,
+                notes = notes,
+                showCheckBox = showAllCheckedBox,
+                onPinClick = {
+                    homeViewModel.modifiedNote(it)
+                },
+                onSelected = {
+                    homeViewModel.modifiedNote(it)
+                },
+                onLongPressed = {
+                    homeViewModel.modifiedNote(it)
+                    homeViewModel.enableAllCheckBox()
+                },
+                onClick = {
+                    homeViewModel.onNoteClick(navHostController, it)
+                },
+            )
+
         }
+    }
 
-        CardList(
-            lazyState = lazyState,
-            notes = notes,
-            showCheckBox = showAllCheckedBox,
-            onPinClick = {
-                homeViewModel.modifiedNote(it)
-            },
-            onSelected = {
-                homeViewModel.modifiedNote(it)
-            },
-            onLongPressed = {
-                homeViewModel.modifiedNote(it)
-                homeViewModel.enableAllCheckBox()
-            },
-            onClick = {
-                homeViewModel.onNoteClick(navHostController, it)
-            },
-        )
-
+    AnimatedVisibility(
+        visible = notes.isEmpty(),
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut() + scaleOut()
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "No notes found!")
+        }
     }
 }
 

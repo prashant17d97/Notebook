@@ -25,20 +25,21 @@ fun initiateKoin(additionalModules: List<Module>? = null) {
 }
 
 private val commonModule = module {
-    single<AppStateOwner> { AppStateOwnerImpl() }
-    single<NoteRepository> { NoteRepositoryImpl() }
-
-    viewModel { HomeViewModel() }
-    viewModel { NoteVM() }
-    viewModel { NoteViewModel() }
-
     single<NotebookDataStore> {
         NotebookDataStore(dataStore = get())
     }
-
     single<DataStoreRepository> {
         DataStoreRepositoryImpl(notebookDataStore = get())
     }
+    single<NoteRepository> { NoteRepositoryImpl() }
+
+    single<AppStateOwner> { AppStateOwnerImpl(dataStoreRepository = get()) }
+
+    viewModel { HomeViewModel() }
+    viewModel { NoteVM(appStateOwner = get()) }
+    viewModel { NoteViewModel() }
+
+
 }
 
 

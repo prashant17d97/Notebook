@@ -1,5 +1,6 @@
 package app.debugdesk.notebook.utils
 
+import androidx.compose.ui.graphics.Color
 import app.debugdesk.notebook.utils.CommonObjects.AUDIO
 import app.debugdesk.notebook.utils.CommonObjects.DOCUMENTS
 import app.debugdesk.notebook.utils.CommonObjects.NOTEBOOK
@@ -22,9 +23,18 @@ import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.dataWithBytes
 import platform.Foundation.writeToFile
+import platform.UIKit.NSTextAlignmentCenter
+import platform.UIKit.UIApplication
+import platform.UIKit.UIColor
+import platform.UIKit.UIFont.Companion.systemFontOfSize
+import platform.UIKit.UILabel
+import platform.UIKit.UIView
+import platform.UIKit.UIViewAnimationOptionCurveEaseOut
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object SharedObjects : KoinComponent {
+
+    actual val isAndroid: Boolean = false
 
     @OptIn(ExperimentalForeignApi::class)
     actual fun createNotebookFolders() {
@@ -125,4 +135,39 @@ actual object SharedObjects : KoinComponent {
         }
     }
 
+    actual fun toastMsg(message: String) {
+        val toastLabel =
+            UILabel().apply {
+                backgroundColor = Color.Black.copy(alpha = 0.6f).getColor()
+                textColor = Color.White.getColor()
+                textAlignment = NSTextAlignmentCenter
+                font = systemFontOfSize(15.0)
+                text = message
+                alpha = 1.0
+                layer.cornerRadius = 10.0
+                clipsToBounds = true
+                UIApplication.sharedApplication.keyWindow?.addSubview(this)
+            }
+
+        UIView.animateWithDuration(
+            duration = 2.0,
+            delay = 0.1,
+            options = UIViewAnimationOptionCurveEaseOut,
+            animations = {
+                toastLabel.alpha = 0.0
+            },
+            completion = { _ ->
+                toastLabel.removeFromSuperview()
+            },
+        )
+    }
+
+    private fun Color.getColor(): UIColor {
+        return UIColor(
+            red = red.toDouble(),
+            green = green.toDouble(),
+            blue = blue.toDouble(),
+            alpha = alpha.toDouble(),
+        )
+    }
 }

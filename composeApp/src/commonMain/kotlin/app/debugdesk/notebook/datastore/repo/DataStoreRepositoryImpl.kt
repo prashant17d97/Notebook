@@ -1,7 +1,12 @@
 package app.debugdesk.notebook.datastore.repo
 
 import androidx.datastore.preferences.core.stringPreferencesKey
+import app.debugdesk.notebook.datamodel.AppAppearance
 import app.debugdesk.notebook.datastore.NotebookDataStore
+import app.debugdesk.notebook.utils.CommonFunctions.toData
+import app.debugdesk.notebook.utils.CommonFunctions.toJson
+import app.debugdesk.notebook.utils.log.Logcat
+import kotlinx.coroutines.flow.firstOrNull
 
 /**
  * Implements the [DataStoreRepository] interface to manage data stored within the application using DataStore.
@@ -15,9 +20,24 @@ import app.debugdesk.notebook.datastore.NotebookDataStore
  * @author Prashant Singh
  */
 class DataStoreRepositoryImpl(private val notebookDataStore: NotebookDataStore) : DataStoreRepository {
+
+    override suspend fun saveAppAppearance(appAppearance: AppAppearance) {
+        notebookDataStore.set(APP_APPEARANCE, appAppearance.toData())
+    }
+
+    override suspend fun fetchAppearance(): AppAppearance {
+        val appAppearanceString = notebookDataStore.getString(APP_APPEARANCE).firstOrNull()
+        return appAppearanceString?.let {
+            try {
+                it.toJson<AppAppearance>()
+            } catch (e: Exception) {
+                Logcat.e("DataStoreRepositoryImpl", e.message.toString())
+                AppAppearance()
+            }
+        } ?: AppAppearance()
+    }
+
     companion object {
-        private val SAVED_POSTS = stringPreferencesKey("SAVED_POSTS")
-        private val APP_THEME = stringPreferencesKey("APP_THEME")
-        private val USE_SYSTEM_PALETTE = stringPreferencesKey("USE_SYSTEM_PALETTE")
+        private val APP_APPEARANCE = stringPreferencesKey("APP_APPEARANCE")
     }
 }

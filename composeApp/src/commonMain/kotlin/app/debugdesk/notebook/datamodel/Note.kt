@@ -2,11 +2,12 @@ package app.debugdesk.notebook.datamodel
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.random.Random
 
 @Serializable
 data class Note(
     @SerialName("id")
-    val id: Int = 0,
+    val id: Int = Random.nextInt(),
     @SerialName("title")
     val title: String,
     @SerialName("description")

@@ -7,6 +7,8 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import app.debugdesk.notebook.datamodel.AppAppearance
+import app.debugdesk.notebook.enummodel.ColorContrast
 import app.debugdesk.notebook.ui.colors.backgroundDark
 import app.debugdesk.notebook.ui.colors.backgroundDarkHighContrast
 import app.debugdesk.notebook.ui.colors.backgroundDarkMediumContrast
@@ -446,18 +448,18 @@ private val highContrastDarkColorScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDarkHighContrast,
 )
 
-val Contrast.colorSchemeLight: ColorScheme
+val ColorContrast.colorSchemeLight: ColorScheme
     get() = when (this) {
-        Contrast.Standard -> lightScheme
-        Contrast.Medium -> mediumContrastLightColorScheme
-        Contrast.High -> highContrastLightColorScheme
+        ColorContrast.Standard -> lightScheme
+        ColorContrast.Medium -> mediumContrastLightColorScheme
+        ColorContrast.High -> highContrastLightColorScheme
     }
 
-val Contrast.colorSchemeDark: ColorScheme
+val ColorContrast.colorSchemeDark: ColorScheme
     get() = when (this) {
-        Contrast.Standard -> darkScheme
-        Contrast.Medium -> mediumContrastDarkColorScheme
-        Contrast.High -> highContrastDarkColorScheme
+        ColorContrast.Standard -> darkScheme
+        ColorContrast.Medium -> mediumContrastDarkColorScheme
+        ColorContrast.High -> highContrastDarkColorScheme
     }
 
 @Immutable
@@ -475,8 +477,14 @@ val unspecified_scheme = ColorFamily(
 
 @Composable
 expect fun AppTheme(
+    appAppearance: AppAppearance = AppAppearance(),
+    content: @Composable () -> Unit
+)
+
+@Composable
+expect fun AppThemePreview(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean =false,
-    contrast: Contrast = Contrast.Standard,
+    dynamicColor: Boolean = false,
+    colorContrast: ColorContrast = ColorContrast.Standard,
     content: @Composable () -> Unit
 )

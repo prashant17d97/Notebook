@@ -14,7 +14,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
     private val appStateOwner: AppStateOwner by inject()
     private val noteRepository: NoteRepository by inject()
 
-
     val notes = noteRepository.note
     val showAllCheckedBox = appStateOwner.showAllCheckedBox
     fun modifiedNote(note: Note) {

@@ -1,6 +1,7 @@
 package app.debugdesk.notebook.utils
 
 import android.content.Context
+import android.widget.Toast
 import app.debugdesk.notebook.utils.CommonObjects.AUDIO
 import app.debugdesk.notebook.utils.CommonObjects.DOCUMENTS
 import app.debugdesk.notebook.utils.CommonObjects.NOTEBOOK
@@ -14,6 +15,8 @@ import java.io.FileOutputStream
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object SharedObjects : KoinComponent {
+
+    actual val isAndroid: Boolean = true
 
     private val context: Context by inject()
 
@@ -65,4 +68,16 @@ actual object SharedObjects : KoinComponent {
             false
         }
     }
+    /**
+     * Composable function for displaying a toast message.
+     * This function displays a toast message with the specified [message].
+     *
+     * @param message The message to be displayed in the toast.
+     *
+     * @author Prashant Singh
+     */
+    actual fun toastMsg(message: String) {        // Show the toast message
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
 }

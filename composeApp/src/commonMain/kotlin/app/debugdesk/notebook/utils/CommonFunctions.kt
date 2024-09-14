@@ -1,12 +1,18 @@
 package app.debugdesk.notebook.utils
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+
 /**
  * Utility object containing common functions used throughout the application.
  */
-/*
+
 object CommonFunctions {
-    */
-/**
+
+    val json = Json { encodeDefaults = true }
+
+    /**
      * Converts RGB color values to hexadecimal format.
      * @param red The red component of the color.
      * @param green The green component of the color.
@@ -75,7 +81,7 @@ object CommonFunctions {
 /**
      * Determines if a string is empty or null.
      * @return The original string if not empty or null, otherwise returns null.
-     *//*
+ */
 
     fun String?.isDataEmpty(): String? {
         // Check if the string is empty or null...
@@ -86,7 +92,13 @@ object CommonFunctions {
         }
     }
 
-    */
+    inline fun <reified Generic> String.toJson(): Generic {
+        return json.decodeFromString<Generic>(this)
+    }
+
+    inline fun <reified Generic> Generic.toData(): String {
+        return json.encodeToString(this)
+    }
 /**
      * Converts a Google Drive link to a format suitable for direct access.
      * @return The converted Google Drive link.
@@ -99,13 +111,7 @@ object CommonFunctions {
     }
 
 
-    inline fun <reified Generic> String.parseJson(): Generic {
-        return json.decodeFromString<Generic>(this)
-    }
 
-    inline fun <reified Generic> parseData(data: Generic): String {
-        return json.encodeToString(data)
-    }
 
     suspend fun List<PostModel>.filterSavedList(dataStoreRepository: DataStoreRepository): List<PostModel> {
         dataStoreRepository.getPost()
@@ -140,5 +146,5 @@ object CommonFunctions {
             AppTheme.LIGHT -> false
             AppTheme.DARK -> true
         }
-    }
-}*/
+    }*/
+}

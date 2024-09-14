@@ -1,0 +1,20 @@
+<resources>
+    <string name="theme_mode">Theme</string>
+    <string name="dynamic_color">Dynamic Color</string>
+    <string name="color_contrast">Color Contrast</string>
+
+    // Theme Appearance properties
+    <string name="system">System</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+
+    // Color Contrast
+    <string name="high">High</string>
+    <string name="medium">Medium</string>
+    <string name="standard">Standard</string>
+
+    // Error
+    <string name="dynamic_color_not_supported">Dynamic Color is not supported on this device</string>
+    <string name="color_contrast_not_supported">Dynamic Color does not support Color Contrast.</string>
+
+</resources>
