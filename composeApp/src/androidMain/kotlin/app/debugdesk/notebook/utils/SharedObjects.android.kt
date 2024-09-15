@@ -2,11 +2,11 @@ package app.debugdesk.notebook.utils
 
 import android.content.Context
 import android.widget.Toast
-import app.debugdesk.notebook.utils.CommonObjects.AUDIO
-import app.debugdesk.notebook.utils.CommonObjects.DOCUMENTS
-import app.debugdesk.notebook.utils.CommonObjects.NOTEBOOK
-import app.debugdesk.notebook.utils.CommonObjects.PICTURE
-import app.debugdesk.notebook.utils.CommonObjects.VIDEO
+import app.debugdesk.notebook.data.util.CommonObjects.AUDIO
+import app.debugdesk.notebook.data.util.CommonObjects.DOCUMENTS
+import app.debugdesk.notebook.data.util.CommonObjects.NOTEBOOK
+import app.debugdesk.notebook.data.util.CommonObjects.PICTURE
+import app.debugdesk.notebook.data.util.CommonObjects.VIDEO
 import app.debugdesk.notebook.utils.log.Logcat
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject

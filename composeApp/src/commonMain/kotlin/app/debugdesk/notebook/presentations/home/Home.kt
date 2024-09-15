@@ -39,7 +39,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import app.debugdesk.notebook.datamodel.Note
+import app.debugdesk.notebook.domain.model.Note
+import app.debugdesk.notebook.utils.log.Logcat
 import notebook.composeapp.generated.resources.Res
 import notebook.composeapp.generated.resources.icon_pinned
 import org.jetbrains.compose.resources.painterResource
@@ -54,7 +55,11 @@ fun Home(
     val lazyState = rememberLazyListState()
     var selectAll by remember { mutableStateOf(false) }
     val showAllCheckedBox by homeViewModel.showAllCheckedBox.collectAsState()
-    val notes by homeViewModel.notes.collectAsState()
+    val notes by homeViewModel.notes.collectAsState(emptyList())
+
+    LaunchedEffect(notes) {
+        Logcat.e("Home", notes.toString())
+    }
 
     LaunchedEffect(notes) {
         selectAll = notes.none { !it.isSelected }
@@ -64,13 +69,13 @@ fun Home(
             AnimatedVisibility(visible = showAllCheckedBox) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
                     selectAll = !selectAll
-                    homeViewModel.markSelectAllNote(selectAll)
+                    homeViewModel.toggleSelectionForAllNote(selectAll)
                 }) {
                     Checkbox(
                         checked = selectAll,
                         onCheckedChange = {
-                            selectAll = !selectAll
-                            homeViewModel.markSelectAllNote(selectAll)
+                            selectAll = it
+                            homeViewModel.toggleSelectionForAllNote(it)
                         }
                     )
                     Text(text = "Select All", style = MaterialTheme.typography.titleLarge)
@@ -82,13 +87,13 @@ fun Home(
                 notes = notes,
                 showCheckBox = showAllCheckedBox,
                 onPinClick = {
-                    homeViewModel.modifiedNote(it)
+                    homeViewModel.pinNote(it)
                 },
                 onSelected = {
-                    homeViewModel.modifiedNote(it)
+                    homeViewModel.toggleSelectionForNote(it)
                 },
                 onLongPressed = {
-                    homeViewModel.modifiedNote(it)
+                    homeViewModel.toggleSelectionForNote(it)
                     homeViewModel.enableAllCheckBox()
                 },
                 onClick = {
@@ -139,10 +144,22 @@ fun CardList(
             NoteBookCard(
                 note = note,
                 showCheckBox = showCheckBox,
-                onSelected = onSelected,
-                onLongPressed = onLongPressed,
-                onPinClick = onPinClick,
-                onClick = onClick
+                onSelected = {
+                    onSelected(
+                        note.copy(
+                            isSelected = !note.isSelected
+                        )
+                    )
+                },
+                onLongPressed = {
+                    onLongPressed(
+                        note.copy(
+                            isSelected = !note.isSelected
+                        )
+                    )
+                },
+                onPinClick = { onPinClick(note.copy(isPinned = false)) },
+                onClick = { onClick(note) }
             )
         }
 
@@ -156,9 +173,22 @@ fun CardList(
             NoteBookCard(
                 note = note,
                 showCheckBox = showCheckBox,
-                onSelected = onSelected,
-                onLongPressed = onLongPressed,
-                onClick = onClick
+                onSelected = {
+                    onSelected(
+                        note.copy(
+                            isSelected = !note.isSelected
+                        )
+                    )
+                },
+                onLongPressed = {
+                    onLongPressed(
+                        note.copy(
+                            isSelected = true
+                        )
+                    )
+                },
+                onPinClick = { onPinClick(note.copy(isPinned = false)) },
+                onClick = { onClick(note) }
             )
         }
     }
@@ -197,26 +227,19 @@ fun NoteBookCard(
     modifier: Modifier = Modifier,
     note: Note,
     showCheckBox: Boolean = false,
-    onSelected: (Note) -> Unit = {},
-    onPinClick: (Note) -> Unit = {},
-    onLongPressed: (Note) -> Unit,
-    onClick: (Note) -> Unit,
+    onSelected: () -> Unit = {},
+    onPinClick: () -> Unit = {},
+    onLongPressed: () -> Unit,
+    onClick: () -> Unit,
 ) {
-
-
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .combinedClickable(
                 onLongClick = {
-                    onLongPressed(
-                        note.copy(
-                            isSelected = true,
-                        )
-                    )
-                },
-                onClick = { onClick(note) }
+                    onLongPressed()
+                }, onClick = { onClick() }
             ),
     ) {
         Column(
@@ -233,25 +256,16 @@ fun NoteBookCard(
             ) {
                 CheckBoxText(
                     modifier = Modifier.weight(1f),
-                    note = note,
                     visible = showCheckBox,
-                    onSelected = onSelected,
-                    onClick = onClick
+                    note = note,
+                    onSelected = onSelected
                 )
 
                 AnimatedVisibility(visible = note.isPinned) {
                     Icon(
                         painter = painterResource(resource = Res.drawable.icon_pinned),
                         contentDescription = "Pinned",
-                        modifier = Modifier.rotate(90f)
-                            .clickable {
-                                onPinClick(
-                                    note.copy(
-                                        isPinned = false,
-                                        isSelected = false
-                                    )
-                                )
-                            }
+                        modifier = Modifier.rotate(90f).clickable(onClick = onPinClick)
                     )
                 }
             }
@@ -272,20 +286,10 @@ fun CheckBoxText(
     modifier: Modifier = Modifier,
     visible: Boolean,
     note: Note,
-    onSelected: (Note) -> Unit,
-    onClick: (Note) -> Unit,
+    onSelected: () -> Unit,
 ) {
     Row(
-        modifier = modifier.clickable {
-            if (visible) {
-                onSelected(
-                    note.copy(isSelected = !note.isSelected)
-                )
-            } else {
-                onClick(note)
-            }
-
-        },
+        modifier = modifier.then(if (visible) Modifier.clickable(onClick = onSelected) else Modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(
             4.dp,
@@ -297,7 +301,7 @@ fun CheckBoxText(
                 Checkbox(
                     checked = note.isSelected,
                     onCheckedChange = {
-                        onSelected(note.copy(isSelected = it))
+                        onSelected()
                     })
             }
         }

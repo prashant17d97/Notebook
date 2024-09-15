@@ -1,11 +1,11 @@
 package app.debugdesk.notebook.utils
 
 import androidx.compose.ui.graphics.Color
-import app.debugdesk.notebook.utils.CommonObjects.AUDIO
-import app.debugdesk.notebook.utils.CommonObjects.DOCUMENTS
-import app.debugdesk.notebook.utils.CommonObjects.NOTEBOOK
-import app.debugdesk.notebook.utils.CommonObjects.PICTURE
-import app.debugdesk.notebook.utils.CommonObjects.VIDEO
+import app.debugdesk.notebook.data.util.CommonObjects.AUDIO
+import app.debugdesk.notebook.data.util.CommonObjects.DOCUMENTS
+import app.debugdesk.notebook.data.util.CommonObjects.NOTEBOOK
+import app.debugdesk.notebook.data.util.CommonObjects.PICTURE
+import app.debugdesk.notebook.data.util.CommonObjects.VIDEO
 import app.debugdesk.notebook.utils.log.Logcat
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCObjectVar
