@@ -38,6 +38,7 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.sqldelight.android)
+            implementation (libs.androidx.core.splashscreen)
         }
         commonMain.dependencies {
             api(libs.koin.compose)
