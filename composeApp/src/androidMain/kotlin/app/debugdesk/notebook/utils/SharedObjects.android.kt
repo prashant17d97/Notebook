@@ -1,6 +1,7 @@
 package app.debugdesk.notebook.utils
 
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import app.debugdesk.notebook.data.util.CommonObjects.AUDIO
 import app.debugdesk.notebook.data.util.CommonObjects.DOCUMENTS
@@ -8,10 +9,17 @@ import app.debugdesk.notebook.data.util.CommonObjects.NOTEBOOK
 import app.debugdesk.notebook.data.util.CommonObjects.PICTURE
 import app.debugdesk.notebook.data.util.CommonObjects.VIDEO
 import app.debugdesk.notebook.utils.log.Logcat
+import kotlinx.datetime.Clock
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object SharedObjects : KoinComponent {
@@ -78,6 +86,31 @@ actual object SharedObjects : KoinComponent {
      */
     actual fun toastMsg(message: String) {        // Show the toast message
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    actual fun Long.toFormattedDate(format: String): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val instant = Instant.ofEpochSecond(this)
+            val formatter = DateTimeFormatter.ofPattern(format, Locale.getDefault())
+            instant.atZone(ZoneId.systemDefault()).format(formatter)
+        } else {
+            val date = Date(this) // Convert seconds to milliseconds
+            val formatter = SimpleDateFormat(format, Locale.getDefault())
+            formatter.format(date)
+        }
+    }
+
+    actual fun Long.toFormattedCurrentDate(format: String): String {
+        val timeInMilliseconds = if (this > 0L) this else Clock.System.now().epochSeconds
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val instant = Instant.ofEpochSecond(timeInMilliseconds)
+            val formatter = DateTimeFormatter.ofPattern(format, Locale.getDefault())
+            instant.atZone(ZoneId.systemDefault()).format(formatter)
+        } else {
+            val date = Date(timeInMilliseconds) // Convert seconds to milliseconds
+            val formatter = SimpleDateFormat(format, Locale.getDefault())
+            formatter.format(date)
+        }
     }
 
 }

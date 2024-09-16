@@ -8,30 +8,31 @@ import app.debugdesk.notebook.domain.repositories.AppStateOwner
 import app.debugdesk.notebook.domain.repositories.NoteRepository
 import app.debugdesk.notebook.presentations.navigation.Route
 import app.debugdesk.notebook.utils.log.Logcat
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class HomeViewModel : ViewModel(), KoinComponent {
+class HomeViewModel(private val noteRepository: NoteRepository) : ViewModel(), KoinComponent {
 
     private val appStateOwner: AppStateOwner by inject()
-    private val noteRepository: NoteRepository by inject()
 
-    val notes: StateFlow<List<Note>> = noteRepository.notes
+    val notes = noteRepository.notes
     val showAllCheckedBox = appStateOwner.showAllCheckedBox
 
     init {
+        noteRepository.notes.onEach {
+            Logcat.e("HomeViewModel", "InitBlock:  $it")
+        }.launchIn(viewModelScope)
+
         viewModelScope.launch {
             noteRepository.getAllNotes()
         }
     }
 
     fun toggleSelectionForNote(note: Note) {
-        viewModelScope.launch {
-            noteRepository.toggleSelectionForNote(note)
-            Logcat.e("HomeViewModel", note.toString())
-        }
+        noteRepository.toggleSelectionForNote(note)
     }
 
     fun enableAllCheckBox() {
@@ -39,10 +40,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
     }
 
     fun toggleSelectionForAllNote(isSelectAll: Boolean = false) {
-        Logcat.e("HomeViewModel", "toggleSelectionForAllNote:--->$isSelectAll")
-        viewModelScope.launch {
-            noteRepository.toggleSelectionForAllNote(isSelectAll = isSelectAll)
-        }
+        noteRepository.toggleSelectionForAllNote(isSelectAll = isSelectAll)
     }
 
     fun onNoteClick(navHostController: NavHostController, it: Note) {
@@ -57,17 +55,21 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
     fun pinSelectedNote() {
         viewModelScope.launch {
-            noteRepository.pinAllSelectedNotes()
-            enableAllCheckBox()
-            toggleSelectionForAllNote(false)
+            if (notes.value.any { it.isSelected }) {
+                noteRepository.pinAllSelectedNotes()
+                enableAllCheckBox()
+                toggleSelectionForAllNote(false)
+            }
         }
     }
 
     fun deleteSelectedNote() {
         viewModelScope.launch {
-            noteRepository.deleteSelectedNote()
-            enableAllCheckBox()
-            toggleSelectionForAllNote(false)
+            if (notes.value.any { it.isSelected }) {
+                noteRepository.deleteSelectedNote()
+                enableAllCheckBox()
+                toggleSelectionForAllNote(false)
+            }
         }
     }
 

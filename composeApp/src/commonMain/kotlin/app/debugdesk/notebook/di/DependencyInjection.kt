@@ -41,9 +41,9 @@ private val commonModule = module {
 
     single<AppStateOwner> { AppStateOwnerImpl(dataStoreRepository = get()) }
 
-    viewModel { HomeViewModel() }
+    viewModel { HomeViewModel(noteRepository = get()) }
     viewModel { NoteVM(appStateOwner = get()) }
-    viewModel { NoteViewModel() }
+    viewModel { NoteViewModel(noteRepository = get()) }
 }
 
 private inline fun <reified T : ViewModel> Module.viewModel(

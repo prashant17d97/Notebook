@@ -26,7 +26,7 @@ data class Note(
     @SerialName("is_pinned")
     val isPinned: Boolean = false,
     @SerialName("isSelected")
-    val isSelected: Boolean = false,
+    val isSelected: Boolean = true,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -38,6 +38,7 @@ data class Note(
         if (title != other.title) return false
         if (description != other.description) return false
         if (createdAt != other.createdAt) return false
+        if (lastModified != other.lastModified) return false
         if (image != null) {
             if (other.image == null) return false
             if (!image.contentEquals(other.image)) return false
@@ -55,6 +56,7 @@ data class Note(
             if (!document.contentEquals(other.document)) return false
         } else if (other.document != null) return false
         if (isPinned != other.isPinned) return false
+        if (isSelected != other.isSelected) return false
 
         return true
     }
@@ -64,11 +66,13 @@ data class Note(
         result = 31 * result + title.hashCode()
         result = 31 * result + description.hashCode()
         result = 31 * result + createdAt.hashCode()
+        result = 31 * result + (lastModified?.hashCode() ?: 0)
         result = 31 * result + (image?.contentHashCode() ?: 0)
         result = 31 * result + (video?.contentHashCode() ?: 0)
         result = 31 * result + (audio?.contentHashCode() ?: 0)
         result = 31 * result + (document?.contentHashCode() ?: 0)
         result = 31 * result + isPinned.hashCode()
+        result = 31 * result + isSelected.hashCode()
         return result
     }
 }

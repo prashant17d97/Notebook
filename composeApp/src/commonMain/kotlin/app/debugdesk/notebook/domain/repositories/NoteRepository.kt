@@ -9,7 +9,7 @@ interface NoteRepository {
 
     suspend fun insertNote(note: Note): Long
 
-    suspend fun getAllNotes()
+    suspend fun getAllNotes(): List<Note>
 
     suspend fun getNoteById(id: Long): Note?
 
@@ -17,23 +17,23 @@ interface NoteRepository {
 
     suspend fun getNotesByDateRange(startDate: Long, endDate: Long): List<Note>
 
-    suspend fun updateNote(note: Note): Boolean
-
     suspend fun deleteNoteById(id: Long): Boolean
 
-    suspend fun addNote(note: Note)
-
-    suspend fun addNotes(notes: List<Note>)
-
-    suspend fun deleteAllNotes(): Boolean
-
-    suspend fun toggleSelectionForAllNote(isSelectAll: Boolean)
-
-    suspend fun pinAllSelectedNotes()
+    fun toggleSelectionForAllNote(isSelectAll: Boolean)
 
     suspend fun unpinAllSelectedNotes()
 
-    suspend fun toggleSelectionForNote(note: Note)
+    fun toggleSelectionForNote(note: Note)
 
     suspend fun deleteSelectedNote()
+
+    fun addNote(note: Note)
+
+    fun addNotes(notes: List<Note>)
+
+    suspend fun updateNote(note: Note): Boolean
+
+    suspend fun deleteAllNotes(): Boolean
+
+    suspend fun pinAllSelectedNotes()
 }

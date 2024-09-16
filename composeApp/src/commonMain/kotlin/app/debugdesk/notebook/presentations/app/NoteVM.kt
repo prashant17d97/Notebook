@@ -7,7 +7,9 @@ import app.debugdesk.notebook.domain.repositories.AppStateOwner
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
-class NoteVM(private val appStateOwner: AppStateOwner) : ViewModel(), KoinComponent {
+class NoteVM(
+    private val appStateOwner: AppStateOwner
+) : ViewModel(), KoinComponent {
 
     val appearance = appStateOwner.appAppearance
 

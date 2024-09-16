@@ -8,17 +8,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import app.debugdesk.notebook.domain.model.Note
 import app.debugdesk.notebook.domain.repositories.AppStateOwner
+import app.debugdesk.notebook.utils.SharedObjects.toFormattedCurrentDate
+import app.debugdesk.notebook.utils.SharedObjects.toFormattedDate
+import notebook.composeapp.generated.resources.Res
+import notebook.composeapp.generated.resources.icon_created_on
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -44,7 +53,7 @@ fun CreateNote(
     navHostController: NavHostController,
     noteViewModel: NoteViewModel = koinInject()
 ) {
-    var noteState by remember { mutableStateOf(note ?: Note(title = "", description = "")) }
+    var noteState by remember { mutableStateOf(Note(title = "", description = "")) }
     val isNewEntry by rememberUpdatedState(note == null)
     val appStateOwner: AppStateOwner = koinInject()
     var isEditable by remember { mutableStateOf(false) }
@@ -52,6 +61,12 @@ fun CreateNote(
         appStateOwner.setShowFab(false)
         onDispose {
             appStateOwner.setShowFab(true)
+        }
+    }
+
+    LaunchedEffect(note?.id) {
+        noteViewModel.getNoteById(note?.id).let {
+            noteState = it ?: Note(title = "", description = "")
         }
     }
     Column(
@@ -157,10 +172,32 @@ private fun DisableText(modifier: Modifier = Modifier, note: Note) {
             style = MaterialTheme.typography.headlineSmall,
             modifier = modifier.fillMaxWidth()
         )
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(
+                painter = painterResource(resource = Res.drawable.icon_created_on),
+                contentDescription = "icon_created_on",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(12.dp)
+            )
+            Text(
+                text = note.createdAt.toFormattedCurrentDate(),
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+
+        note.lastModified?.let {
+            Text(
+                text = "Last Modified: ${it.toFormattedDate()}",
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+
+        HorizontalDivider(Modifier.fillMaxWidth())
         Text(
             text = note.description,
             modifier = modifier.fillMaxWidth()
         )
+
     }
 }
 
@@ -197,7 +234,18 @@ private fun EditableField(
                 focusManager.moveFocus(FocusDirection.Down)
             })
         )
-
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(
+                painter = painterResource(resource = Res.drawable.icon_created_on),
+                contentDescription = "icon_created_on",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(12.dp)
+            )
+            Text(
+                text = note.createdAt.toFormattedCurrentDate(),
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
         OutlinedTextField(
             value = note.description,
             placeholder = {

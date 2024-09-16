@@ -21,4 +21,9 @@ expect object SharedObjects : KoinComponent {
      */
     fun toastMsg(message: String)
 
+    fun Long.toFormattedDate(format: String = "dd MMM yyyy 'at' hh:mm a"): String
+
+    fun Long.toFormattedCurrentDate(format: String = "dd MMM yyyy 'at' hh:mm a"): String
+
+
 }

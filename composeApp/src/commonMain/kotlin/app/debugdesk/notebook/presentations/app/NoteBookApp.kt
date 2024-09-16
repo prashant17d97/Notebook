@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.DrawerValue
@@ -37,16 +38,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import app.debugdesk.notebook.domain.model.AppAppearance
 import app.debugdesk.notebook.domain.model.ColorContrast
@@ -69,7 +70,7 @@ import notebook.composeapp.generated.resources.ic_contrast
 import notebook.composeapp.generated.resources.ic_dark_mode
 import notebook.composeapp.generated.resources.ic_dynamic_color
 import notebook.composeapp.generated.resources.ic_light_mode
-import notebook.composeapp.generated.resources.icon_pinned
+import notebook.composeapp.generated.resources.icon_pin_outlined
 import notebook.composeapp.generated.resources.theme_mode
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -86,7 +87,8 @@ fun NoteBookApp() {
     val noteVM: NoteVM = koinInject()
     val showAllCheckedBox by homeViewModel.showAllCheckedBox.collectAsState()
     val appearance by noteVM.appearance.collectAsState()
-
+    val navBackStackEntry by navHostController.currentBackStackEntryAsState()
+    val isHomeScreen by rememberUpdatedState(navBackStackEntry?.destination?.route == Route.HomeScreen::class.qualifiedName)
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -116,8 +118,13 @@ fun NoteBookApp() {
                 topAppBar = {
                     TopBar(
                         show = showAllCheckedBox,
+                        isHomeScreen = isHomeScreen,
                         onActionClick = {
-                            scope.launch { drawerState.open() }
+                            if (isHomeScreen) {
+                                scope.launch { drawerState.open() }
+                            } else {
+                                navHostController.navigateUp()
+                            }
                         },
                         onNavigationClick = {
                             homeViewModel.enableAllCheckBox()
@@ -145,8 +152,8 @@ fun NoteBookApp() {
 @Composable
 private fun TopBar(
     modifier: Modifier = Modifier,
-    actionIcon: ImageVector = Icons.Rounded.Menu,
     show: Boolean = false,
+    isHomeScreen: Boolean = false,
     title: String = "NoteBook",
     onActionClick: () -> Unit = {},
     onNavigationClick: () -> Unit = {},
@@ -157,12 +164,20 @@ private fun TopBar(
             IconButton(onClick = onNavigationClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    Icons.AutoMirrored.Rounded.ArrowBack.name
+                    Icons.AutoMirrored.Rounded.ArrowBack.name,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }
     },
 ) {
+
+    val icon by rememberUpdatedState(
+        if (isHomeScreen)
+            Icons.Rounded.Menu
+        else
+            Icons.AutoMirrored.Rounded.KeyboardArrowLeft
+    )
     Surface(
         tonalElevation = 4.dp,
         shadowElevation = 4.dp
@@ -182,9 +197,9 @@ private fun TopBar(
                                 .clickable { onActionClick() }) {
 
                             Icon(
-                                imageVector = actionIcon,
-                                contentDescription = actionIcon.name,
-                                modifier = Modifier.padding(4.dp)
+                                imageVector = icon,
+                                contentDescription = icon.name,
+                                modifier = Modifier.padding(4.dp),
                             )
                         }
                         Text(text = title)
@@ -204,10 +219,10 @@ private fun TopBar(
                             onClick = onPinnedClick,
                         ) {
                             Icon(
-                                painter = painterResource(Res.drawable.icon_pinned),
+                                painter = painterResource(Res.drawable.icon_pin_outlined),
                                 contentDescription = "Pinned",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier=Modifier.rotate(90f)
+                                modifier=Modifier.size(24.dp)
                             )
                         }
                         IconButton(
