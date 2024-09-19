@@ -172,7 +172,7 @@ private fun DisableText(modifier: Modifier = Modifier, note: Note) {
             style = MaterialTheme.typography.headlineSmall,
             modifier = modifier.fillMaxWidth()
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)) {
             Icon(
                 painter = painterResource(resource = Res.drawable.icon_created_on),
                 contentDescription = "icon_created_on",

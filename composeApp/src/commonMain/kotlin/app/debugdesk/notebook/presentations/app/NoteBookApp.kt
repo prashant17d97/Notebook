@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.DrawerValue
@@ -32,8 +33,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -92,20 +95,39 @@ fun NoteBookApp() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    var isColorContrastExpanded by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var isThemeModeExpended by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(drawerState.isClosed) {
+        if (drawerState.isClosed) {
+            isColorContrastExpanded = false
+            isThemeModeExpended = false
+        }
+    }
+
     AppTheme(appAppearance = appearance) {
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
                 ModalDrawerSheet {
-                    Column(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        verticalArrangement = Arrangement.SpaceBetween,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        NavigationDrawerItems(
-                            appAppearance = appearance, onClick = noteVM::updateAppearance
-                        )
-                    }
+                    NavigationDrawerItems(
+                        appAppearance = appearance,
+                        isThemeModeExpended = isThemeModeExpended,
+                        isColorContrastExpanded = isColorContrastExpanded,
+                        onExpandToggle = { theme, colorContrast ->
+                            isThemeModeExpended = theme
+                            isColorContrastExpanded = colorContrast
+                        },
+                        onCloseDrawer = {
+                            scope.launch { drawerState.close() }
+                        },
+                        onClick = noteVM::updateAppearance
+                    )
                 }
             },
             gesturesEnabled = true
@@ -129,12 +151,10 @@ fun NoteBookApp() {
                         onNavigationClick = {
                             homeViewModel.enableAllCheckBox()
                             homeViewModel.toggleSelectionForAllNote()
-                        },
-                        onDeleteClick = {
-                            homeViewModel.deleteSelectedNote()
-                        },
-                        onPinnedClick = {
+                        }, onPinnedClick = {
                             homeViewModel.pinSelectedNote()
+                        }, onDeleteClick = {
+                            homeViewModel.deleteSelectedNote()
                         }
                     )
                 }
@@ -206,7 +226,8 @@ private fun TopBar(
                     }
 
                 }
-            }, actions = {
+            },
+            actions = {
                 AnimatedVisibility(show) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -246,27 +267,47 @@ private fun TopBar(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavigationDrawerItems(
     modifier: Modifier = Modifier,
     appAppearance: AppAppearance,
+    isThemeModeExpended: Boolean = false,
+    isColorContrastExpanded: Boolean = false,
     onClick: (AppAppearance) -> Unit = {},
+    onCloseDrawer: () -> Unit = {},
+    onExpandToggle: (theme: Boolean, colorContrast: Boolean) -> Unit = { _, _ -> },
 ) {
     val colorContrastErrorMsg = stringResource(Res.string.color_contrast_not_supported)
-    var isThemeModeExpended by rememberSaveable {
-        mutableStateOf(false)
-    }
-    var isColorContrastExpanded by rememberSaveable {
-        mutableStateOf(false)
-    }
+
     val cornerRadius: Dp by animateDpAsState(
-        targetValue = if (isThemeModeExpended || isColorContrastExpanded) 20.dp else 50.dp // Adjust 50.dp for CircleShape approximation
+        targetValue = if (isColorContrastExpanded) 20.dp else 50.dp // Adjust 50.dp for CircleShape approximation
+    )
+
+    val themeCornerRadius: Dp by animateDpAsState(
+        targetValue = if (isThemeModeExpended) 20.dp else 50.dp // Adjust 50.dp for CircleShape approximation
     )
     Column(
-        modifier = modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(
+        modifier = modifier, verticalArrangement = Arrangement.spacedBy(
             space = 8.dp, alignment = Alignment.CenterVertically
         ), horizontalAlignment = Alignment.Start
     ) {
+        TopAppBar(
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+            modifier = modifier, title = {
+                Text(text = "NoteBook", style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer)
+            }, actions = {
+                IconButton(onClick = onCloseDrawer) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = Icons.Rounded.Close.name,
+                        modifier = Modifier.padding(4.dp),
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            })
+
         AnimatedVisibility(isAndroid) {
             NavigationDrawerItem(
                 label = { Text(text = stringResource(Res.string.dynamic_color)) },
@@ -287,31 +328,26 @@ fun NavigationDrawerItems(
             )
         }
 
-
         Column(
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                .clip(RoundedCornerShape(cornerRadius)).background(
+                .clip(RoundedCornerShape(themeCornerRadius)).background(
                     color = MaterialTheme.colorScheme.secondaryContainer,
                 )
-
-
         ) {
             NavigationDrawerItem(
                 label = { Text(text = stringResource(Res.string.theme_mode)) },
                 selected = true,
-                onClick = { isThemeModeExpended = !isThemeModeExpended },
+                onClick = { onExpandToggle(!isThemeModeExpended, isColorContrastExpanded) },
                 icon = {
                     Icon(painter = painterResource(Res.drawable.ic_dark_mode.takeIf {
                         appAppearance.themeMode.isDakTheme
-                    } ?: Res.drawable.ic_light_mode),
-                        contentDescription = "Dynamic Color",
+                    } ?: Res.drawable.ic_light_mode), contentDescription = "Theme",
                         tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 },
                 badge = {
                     Text(stringResource(appAppearance.themeMode.value))
                 },
-
-                )
+            )
             AnimatedVisibility(isThemeModeExpended) {
                 Column(
                     modifier = Modifier.fillMaxWidth()
@@ -326,7 +362,7 @@ fun NavigationDrawerItems(
                         TextButton(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
-                                isThemeModeExpended = false
+                                onExpandToggle(false, isColorContrastExpanded)
                                 onClick(appAppearance.copy(themeMode = it))
                             }) {
                             Text(
@@ -341,7 +377,6 @@ fun NavigationDrawerItems(
             }
         }
 
-
         Column(
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 .clip(RoundedCornerShape(cornerRadius)).background(
@@ -353,7 +388,7 @@ fun NavigationDrawerItems(
                 selected = true,
                 onClick = {
                     if (!appAppearance.useSystemPalette) {
-                        isColorContrastExpanded = !isColorContrastExpanded
+                        onExpandToggle(isThemeModeExpended, !isColorContrastExpanded)
                     } else {
                         toastMsg(colorContrastErrorMsg)
                     }
@@ -361,14 +396,13 @@ fun NavigationDrawerItems(
                 icon = {
                     Icon(
                         painter = painterResource(Res.drawable.ic_contrast),
-                        contentDescription = "Dynamic Color",
+                        contentDescription = "Color Contrast",
                         tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 },
                 badge = {
                     Text(stringResource(appAppearance.colorContrast.value))
                 },
-
                 )
             AnimatedVisibility(isColorContrastExpanded) {
                 Column(
@@ -384,7 +418,7 @@ fun NavigationDrawerItems(
                         TextButton(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
-                                isColorContrastExpanded = false
+                                onExpandToggle(isThemeModeExpended, false)
                                 onClick(appAppearance.copy(colorContrast = it))
                             }) {
                             Text(

@@ -304,7 +304,7 @@ fun CheckBoxText(
             )
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.CenterHorizontally)) {
             Icon(
                 painter = painterResource(resource = Res.drawable.icon_created_on),
                 contentDescription = "icon_created_on",
