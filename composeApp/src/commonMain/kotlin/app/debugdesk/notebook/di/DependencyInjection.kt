@@ -1,16 +1,19 @@
 package app.debugdesk.notebook.di
 
 import androidx.lifecycle.ViewModel
-import app.debugdesk.notebook.NoteVM
-import app.debugdesk.notebook.datastore.NotebookDataStore
-import app.debugdesk.notebook.datastore.repo.DataStoreRepository
-import app.debugdesk.notebook.datastore.repo.DataStoreRepositoryImpl
+import app.debugdesk.database.NotebookDatabase
+import app.debugdesk.notebook.data.local.NoteDataBaseFactory
+import app.debugdesk.notebook.data.local.NotebookDataStore
+import app.debugdesk.notebook.data.repository.AppStateOwnerImpl
+import app.debugdesk.notebook.data.repository.DataStoreRepositoryImpl
+import app.debugdesk.notebook.data.repository.NoteRepositoryImpl
+import app.debugdesk.notebook.di.platform.platformModule
+import app.debugdesk.notebook.domain.repositories.AppStateOwner
+import app.debugdesk.notebook.domain.repositories.DataStoreRepository
+import app.debugdesk.notebook.domain.repositories.NoteRepository
+import app.debugdesk.notebook.presentations.app.NoteVM
 import app.debugdesk.notebook.presentations.home.HomeViewModel
 import app.debugdesk.notebook.presentations.note.NoteViewModel
-import app.debugdesk.notebook.repositories.implementation.NoteRepositoryImpl
-import app.debugdesk.notebook.repositories.interfaces.NoteRepository
-import app.debugdesk.notebook.stateowners.appstatesowner.AppStateOwner
-import app.debugdesk.notebook.stateowners.appstatesowner.AppStateOwnerImpl
 import org.koin.core.context.startKoin
 import org.koin.core.definition.Definition
 import org.koin.core.definition.KoinDefinition
@@ -31,32 +34,17 @@ private val commonModule = module {
     single<DataStoreRepository> {
         DataStoreRepositoryImpl(notebookDataStore = get())
     }
-    single<NoteRepository> { NoteRepositoryImpl() }
+    single<NotebookDatabase> {
+        NotebookDatabase(driver = NoteDataBaseFactory.create())
+    }
+    single<NoteRepository> { NoteRepositoryImpl(database = get()) }
 
     single<AppStateOwner> { AppStateOwnerImpl(dataStoreRepository = get()) }
 
-    viewModel { HomeViewModel() }
+    viewModel { HomeViewModel(noteRepository = get()) }
     viewModel { NoteVM(appStateOwner = get()) }
-    viewModel { NoteViewModel() }
-
-
+    viewModel { NoteViewModel(noteRepository = get()) }
 }
-
-
-/**
- * Declares an expect property platformModule to be implemented in platform-specific code.
- * This module provides platform-specific dependencies required for the application.
- *
- * @see Module
- *
- * @property platformModule The platform-specific Koin module.
- *
- * @constructor Creates an instance of [platformModule].
- *
- * @author Prashant Singh
- */
-expect val platformModule: Module
-
 
 private inline fun <reified T : ViewModel> Module.viewModel(
     qualifier: Qualifier? = null,

@@ -1,0 +1,69 @@
+import kotlin.Boolean;
+-- Define the Notebook table
+CREATE TABLE Notebook (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    last_modified INTEGER,
+    image BLOB,
+    video BLOB,
+    audio BLOB,
+    document BLOB,
+    is_pinned INTEGER AS Boolean DEFAULT 0
+);
+
+-- Separate statements with a blank line
+
+-- Insert a new Notebook
+insertNote:
+INSERT INTO Notebook (title, description, created_at, last_modified, image, video, audio, document, is_pinned)
+VALUES (:title, :description, :created_at, :last_modified, :image, :video, :audio, :document, :is_pinned);
+
+-- Select all notes
+selectAll:
+SELECT * FROM Notebook;
+
+-- Select a Notebook by ID
+selectById:
+SELECT * FROM Notebook WHERE id = :id;
+
+-- Search notes by title or description
+searchNotes:
+SELECT * FROM Notebook
+WHERE title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%';
+
+-- Select notes within a date range
+selectByDateRange:
+SELECT * FROM Notebook
+WHERE created_at BETWEEN :startDate AND :endDate;
+
+-- Update an existing Notebook
+updateNote:
+UPDATE Notebook
+SET title = :title,
+    description = :description,
+    created_at = :created_at,
+    last_modified = :last_modified,
+    image = :image,
+     video = :video,
+     audio = :audio,
+     document = :document,
+     is_pinned = :is_pinned
+WHERE id = :id;
+
+-- Delete a Notebook by ID
+deleteById:
+DELETE FROM Notebook WHERE id = :id;
+
+-- Delete all notes
+deleteAll:
+DELETE FROM Notebook;
+
+-- Get the last inserted row ID
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+-- Get the number of rows affected by the last operation
+changes:
+SELECT changes();

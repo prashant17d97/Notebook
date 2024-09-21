@@ -1,11 +1,11 @@
 package app.debugdesk.notebook.utils
 
 import androidx.compose.ui.graphics.Color
-import app.debugdesk.notebook.utils.CommonObjects.AUDIO
-import app.debugdesk.notebook.utils.CommonObjects.DOCUMENTS
-import app.debugdesk.notebook.utils.CommonObjects.NOTEBOOK
-import app.debugdesk.notebook.utils.CommonObjects.PICTURE
-import app.debugdesk.notebook.utils.CommonObjects.VIDEO
+import app.debugdesk.notebook.data.util.CommonObjects.AUDIO
+import app.debugdesk.notebook.data.util.CommonObjects.DOCUMENTS
+import app.debugdesk.notebook.data.util.CommonObjects.NOTEBOOK
+import app.debugdesk.notebook.data.util.CommonObjects.PICTURE
+import app.debugdesk.notebook.data.util.CommonObjects.VIDEO
 import app.debugdesk.notebook.utils.log.Logcat
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCObjectVar
@@ -14,14 +14,18 @@ import kotlinx.cinterop.allocPointerTo
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
+import kotlinx.datetime.Clock
 import org.koin.core.component.KoinComponent
 import platform.Foundation.NSData
+import platform.Foundation.NSDate
+import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSError
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.dataWithBytes
+import platform.Foundation.systemTimeZone
 import platform.Foundation.writeToFile
 import platform.UIKit.NSTextAlignmentCenter
 import platform.UIKit.UIApplication
@@ -169,5 +173,24 @@ actual object SharedObjects : KoinComponent {
             blue = blue.toDouble(),
             alpha = alpha.toDouble(),
         )
+    }
+
+    actual fun Long.toFormattedDate(format: String): String {
+        val date = NSDate(timeIntervalSinceReferenceDate = this.toDouble())
+        val formatter = NSDateFormatter().apply {
+            dateFormat = format
+            timeZone = platform.Foundation.NSTimeZone.systemTimeZone
+        }
+        return formatter.stringFromDate(date)
+    }
+
+    actual fun Long.toFormattedCurrentDate(format: String): String {
+        val timeInMilliseconds = if (this > 0L) this else Clock.System.now().epochSeconds
+        val date = NSDate(timeIntervalSinceReferenceDate = this.toDouble())
+        val formatter = NSDateFormatter().apply {
+            dateFormat = format
+            timeZone = platform.Foundation.NSTimeZone.systemTimeZone
+        }
+        return formatter.stringFromDate(date)
     }
 }
