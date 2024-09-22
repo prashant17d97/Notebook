@@ -1,5 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -7,16 +5,21 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.serialization.plugin)
+    alias(libs.plugins.sqlDelight)
 }
 
 kotlin {
     androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_11)
+                }
+            }
         }
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -25,25 +28,49 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            linkerOpts("-lsqlite3")
         }
     }
-    
+
     sourceSets {
-        
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.sqldelight.android)
+            implementation (libs.androidx.core.splashscreen)
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
+            api(libs.koin.compose)
+            api(libs.koin.core)
+            api(libs.koin.test)
+            implementation(libs.androidx.datastore.preferences.core)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.runtime)
+            implementation(compose.ui)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.compose.navigation)
+            implementation(libs.kotlinx.serialization)
+            implementation(libs.kotlinx.coroutine)
+            implementation(libs.sqldelight.coroutines)
+            implementation(libs.kotlinx.datetime)
+
         }
+        iosMain.dependencies {
+            implementation(libs.sqldelight.native)
+        }
+    }
+    sqldelight {
+        databases {
+            create("NotebookDatabase") {
+                packageName = "app.debugdesk.database"
+            }
+        }
+        linkSqlite.set(true)
     }
 }
 
