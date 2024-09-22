@@ -55,7 +55,7 @@ import app.debugdesk.notebook.presentations.home.HomeViewModel
 import app.debugdesk.notebook.presentations.navigation.NavigationGraph
 import app.debugdesk.notebook.presentations.navigation.Route
 import app.debugdesk.notebook.presentations.ui.theme.AppTheme
-import app.debugdesk.notebook.presentations.uicomponent.UiComponent.NoteScaffold
+import app.debugdesk.notebook.presentations.uicomponent.NoteScaffold
 import app.debugdesk.notebook.utils.SharedObjects.isAndroid
 import app.debugdesk.notebook.utils.SharedObjects.toastMsg
 import kotlinx.coroutines.launch

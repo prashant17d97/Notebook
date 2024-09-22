@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -44,6 +45,7 @@ import app.debugdesk.notebook.utils.SharedObjects.toFormattedCurrentDate
 import app.debugdesk.notebook.utils.SharedObjects.toFormattedDate
 import notebook.composeapp.generated.resources.Res
 import notebook.composeapp.generated.resources.icon_created_on
+import notebook.composeapp.generated.resources.icon_image
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 
@@ -209,31 +211,45 @@ private fun EditableField(
     val focusManager = LocalFocusManager.current
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Top)) {
-        OutlinedTextField(
-            value = note.title,
-            onValueChange = {
-                onValueChange(note.copy(title = it))
-            },
-            modifier = modifier.fillMaxWidth(),
-            maxLines = 1,
-            placeholder = {
-                Text(text = "Title")
-            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next,
-                capitalization = KeyboardCapitalization.Sentences,
-                autoCorrectEnabled = true,
-                hintLocales = LocaleList(
-                    Locale("en"),
-                    Locale("hi"),
-                    Locale("fr")
+
+        Row(modifier = modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = note.title,
+                onValueChange = {
+                    onValueChange(note.copy(title = it))
+                },
+                modifier = modifier.weight(1f),
+                maxLines = 1,
+                placeholder = {
+                    Text(text = "Title")
+                },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    autoCorrectEnabled = true,
+                    hintLocales = LocaleList(
+                        Locale("en"),
+                        Locale("hi"),
+                        Locale("fr")
+                    ),
+                    showKeyboardOnFocus = true
                 ),
-                showKeyboardOnFocus = true
-            ),
-            keyboardActions = KeyboardActions(onNext = {
-                focusManager.moveFocus(FocusDirection.Down)
-            })
-        )
+                keyboardActions = KeyboardActions(onNext = {
+                    focusManager.moveFocus(FocusDirection.Down)
+                }),
+                trailingIcon = {
+                    IconButton(
+                        onClick = {},
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.icon_image),
+                            contentDescription = "Images"
+                        )
+                    }
+                }
+            )
+        }
+
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             Icon(
                 painter = painterResource(resource = Res.drawable.icon_created_on),

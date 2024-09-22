@@ -58,7 +58,9 @@ kotlin {
             implementation(libs.kotlinx.coroutine)
             implementation(libs.sqldelight.coroutines)
             implementation(libs.kotlinx.datetime)
-
+            api(libs.permissions)
+            // compose multiplatform
+            api(libs.permissions.compose) // permissions api + compose extensions
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native)
